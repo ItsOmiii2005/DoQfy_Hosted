@@ -1,10 +1,10 @@
 const express = require("express");
 const fileUpload = require("express-fileupload");
 const pdfParse = require("pdf-parse");
+const { PDFDocument, rgb, StandardFonts, degrees } = require('pdf-lib');
 const OpenAI = require("openai");
 const mongoose = require('mongoose');
 const mammoth = require('mammoth');
-const path = require('path');
 require('dotenv').config();
 
 const Question = require('./Questions');
@@ -22,11 +22,7 @@ const connectToMongoDB = async () => {
 }
 connectToMongoDB();
 app.use(cors());
-app.use("/", express.static("dist"));
-
-app.get('/*', function (req, res) {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
+app.use("/", express.static("public"));
 app.use(fileUpload());
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -80,9 +76,9 @@ app.post("/extract", async (req, res) => {
 
 
 
-if (wordCount > 5500) {
- word = word.slice(0, 5500);
-    wordCount = 5500;
+if (wordCount > 6500) {
+ word = word.slice(0, 6500);
+    wordCount = 6500;
   
   }else if(wordCount < 20){
   return res.status(400).json({ error: 'Text too short' });
@@ -137,132 +133,9 @@ console.log(" Tokens:" +tokensCount);
       .select('topic mcqs -_id'); // Adjust the fields you need
 
     let mcqs = topicWiseQuestions.mcqs;
-    // Create a new PDF document
-    // const pdfDoc = await PDFDocument.create();
-    // const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-    // const TimesRomanBoldItalic = await pdfDoc.embedFont(StandardFonts.TimesRomanBoldItalic);
-    // const page = pdfDoc.addPage();
-    // let y = page.getHeight() - 20;
-
+  
     console.log(mcqs.length);
     const topicTitle = `${topic1.topic}`;
-
-    //     // Split MCQs into pages, each containing 5 MCQs
-    //     let pageMcqs = [];
-    //     for (let i = 0; i < mcqs.length; i += 5) {
-    //         pageMcqs.push(mcqs.slice(i, i + 5));
-    //     }
-
-    //     for (let pageMcq of pageMcqs) {
-    //         const page = pdfDoc.addPage();
-
-
-    //     const topicTitleWidth = TimesRomanBoldItalic.widthOfTextAtSize(topicTitle, 18);
-    //     const centerX = (page.getWidth() - topicTitleWidth) / 2;
-    //     page.drawText(topicTitle.toUpperCase(), {
-    //         x: centerX,
-    //         y: page.getHeight() - 50,
-    //         color: rgb(0, 0, 0),
-    //     });
-    // // Draw a line below the topic title for underline effect
-    // const underlineY = page.getHeight() - 60;
-    // const underlineWidth = page.getWidth() - 90; // Adjust the width of the underline
-    // const underlineColor = rgb(0, 0, 0); // Adjust the color of the underline
-    // page.drawLine({
-    //     start: { x: 50, y: underlineY },
-    //     end: { x: 50 + underlineWidth, y: underlineY },
-    //     color: underlineColor,
-    //     thickness: 1, // Adjust the thickness of the underline
-    // });
-
-
-    // const { width, height } = page.getSize();
-    // page.drawText('VPolyQuizer', {
-    //   x: width / 2 - 100,
-    //   y: height / 2 + 140,
-    //   size: 60,
-    //   font: timesRomanFont,
-    //   blendMode: 'Exclusion',
-    //   opacity:0.5,
-    //   color: rgb(0, 0, 0),
-    //   rotate: degrees(-45),
-    // })
-
-    //         let y = page.getHeight() - 90;
-
-    //         // Draw double border around the page
-    //         page.drawRectangle({
-    //           x: 20,
-    //           y: 20,
-    //           width: page.getWidth() - 40,
-    //           height: page.getHeight() - 40,
-    //           borderWidth: 2,
-    //           borderColor: rgb(0, 0, 0),
-    //           borderLineCap: 'Projecting', 
-    //       });
-
-    //         // Draw MCQs on the PDF document
-    //         for (let mcq of pageMcq) {
-    //             page.drawText(`Question ${mcqs.indexOf(mcq) + 1}: ${mcq.question}`, {
-    //                 x: 50,
-    //                 y,
-    //                 size: 12,
-    //                 font: timesRomanFont,
-    //                 color: rgb(0, 0, 0),
-    //             });
-    //             y -= 20;
-
-    //             mcq.options.forEach((option, optionIndex) => {
-    //                 const textColor = option.isCorrect ? rgb(1, 0, 0) : rgb(0, 0, 0);
-    //                 const highlightColor = option.isCorrect ? rgb(1, 1, 0) : rgb(1, 1, 1);
-    //                 page.drawText(`${String.fromCharCode(97 + optionIndex)}. ${option.text}`, {
-    //                     x: 70,
-    //                     y,
-    //                     size: 12,
-    //                     font: timesRomanFont,
-    //                     color: textColor,
-    //                     // backgroundColor: rgb(1, 1, 0),
-    //                 });
-    //                 y -= 20;
-    //             });
-
-    //             mcq.options.forEach((option, optionIndex) => {
-    //               if (option.isCorrect) {
-    //                   page.drawText(`Correct Answer: ${String.fromCharCode(97 + optionIndex)}. ${option.text}`, {
-    //                       x: 50,
-    //                       y,
-    //                       size: 12,
-    //                       font: timesRomanFont,
-    //                       color: rgb(0, 0, 0),
-    //                   });
-    //                   y -= 20;
-    //               }
-    //           });
-
-
-    //             y -= 20;
-    //         }
-    //     }
-
-    //     // Serialize the PDFDocument to bytes
-    //     const pdfBytes = await pdfDoc.save();
-    //     console.log("Done !");
-
-    // Save file with fs in folder
-    // fs.writeFileSync(`./${topic}.pdf`, pdfBytes);
-    // console.log(topicWiseQuestions);
-
-    // res.send(topicWiseQuestions);
-
-
-    // Set content type and send PDF bytes as response
-    //  res.setHeader('Content-Type', 'application/pdf');
-    //  res.send(pdfBytes);
-
-    // Set content type and headers for download
-    //  res.setHeader('Content-Type', 'application/pdf');
-    //  res.setHeader('Content-Disposition', 'attachment; filename=test-file.pdf');
-    // Start the download by sending the PDF bytes as response
 
     console.log(topicTitle, mcqs);
     console.log("Done !");
@@ -276,45 +149,6 @@ console.log(" Tokens:" +tokensCount);
   }
 });
 
-// const getmcqOnline =async ()=>{
-//   const findTopic= Topics.findOne({
-//     topic: "om"
-//   });
-
-//   if (!findTopic){
-
-//   }else{
-
-//   }
-
-//   console.log(findTopic)
-// }
-
-// app.get('/getmcqonline/:topic', async (req, res) => {
-//   try {
-//     const { topic } = req.params;
-//     console.log(topic);
-
-//     const findTopic = await Topics.findOne({ topic }).populate({
-//       path: 'mcqs',
-//       select: 'question options -_id',
-//     });
-//     console.log(findTopic);
-
-// if (!findTopic) { 
-//   return res.status(404).json({ message: 'Topic not found.' });
-// }
-
-// // Get a random MCQ from the populated 'mcqs' field
-// const randomIndex = Math.floor(Math.random() * findTopic.mcqs.length);
-// const randomMCQ = findTopic.mcqs[randomIndex];
-
-// res.json(randomMCQ);
-//   } catch (error) {
-//     console.error('Error:', error);
-//     res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// });
 
 app.get('/getmcqonline/:topic/:count', async (req, res) => {
   try {
@@ -372,6 +206,18 @@ else if (count === "0") {
   }
 });
 
+app.get('/availabletopics', async (req, res) => {
+  const topics = await Topics.find();
+  
+  //calculate available number of mcqs in each topic
+  const topicsWithCount = await Promise.all(topics.map(async topic => {
+    const count = await Question.countDocuments({_id: {$in: topic.mcqs}});
+    return {topic: topic.topic, count};
+  }));
+  console.log(topicsWithCount);
+  res.json(topicsWithCount);
+});
+
 const saveToDatabase = async (final, topic) => {
 
   try {
@@ -401,23 +247,15 @@ const saveToDatabase = async (final, topic) => {
 };
 
 
-app.get('/availabletopics', async (req, res) => {
-  const topics = await Topics.find();
-  //calculate available number of mcqs in each topic
-  const topicsWithCount = await Promise.all(topics.map(async topic => {
-    const count = await Question.countDocuments({ _id: { $in: topic.mcqs } });
-    return { ...topic._doc, count };
-  }));
-  console.log(topicsWithCount);
-  res.send(topicsWithCount);
-});
+
+
 
 
 
 const getMcqs = async (text, topic) => {
   // Explicitly instruct the model to generate multiple-choice questions
 
-  const prompt = `Generate a set of 10 MCQs (objective and factual, avoid subjective interpretation and avoid limited context) from the following text in format like JSON: {
+  const prompt = `Generate a set of 30 MCQs (objective and factual, avoid subjective interpretation and avoid limited context) from the following text in format like JSON: {
       "questions": [
         {
           "question": "",
@@ -458,8 +296,8 @@ console.log(response.choices[0].message.content);
   return await saveToDatabase(generatedQuestions.questions, topic);
   // return generatedQuestions.questions.length;
 }
+const PORT = process.env.PORT || 5100;
 
-
-app.listen(5100, () => {
+app.listen(PORT, () => {
   console.log("Server is running on port 5100");
 });
