@@ -22,11 +22,16 @@ const connectToMongoDB = async () => {
 }
 connectToMongoDB();
 app.use(cors());
-app.use("/", express.static("public"));
+app.use("/", express.static("dist"));
 app.use(fileUpload());
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+app.get("/*", (req, res) => {
+  res.sendFile(__dirname + "/dist/index.html");
+
+  });
 
 app.post("/extract", async (req, res) => {
   try {
